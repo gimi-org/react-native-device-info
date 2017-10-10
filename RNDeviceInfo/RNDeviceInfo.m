@@ -33,17 +33,17 @@ RCT_EXPORT_MODULE()
     struct utsname systemInfo;
 
     uname(&systemInfo);
-    
+
     NSString* deviceId = [NSString stringWithCString:systemInfo.machine
                                             encoding:NSUTF8StringEncoding];
-    
+
     if ([deviceId isEqualToString:@"i386"] || [deviceId isEqualToString:@"x86_64"] ) {
         deviceId = [NSString stringWithFormat:@"%s", getenv("SIMULATOR_MODEL_IDENTIFIER")];
         self.isEmulator = YES;
     } else {
         self.isEmulator = NO;
     }
-    
+
     return deviceId;
 }
 
@@ -52,7 +52,7 @@ RCT_EXPORT_MODULE()
     static NSDictionary* deviceNamesByCode = nil;
 
     if (!deviceNamesByCode) {
-        
+
         deviceNamesByCode = @{@"iPod1,1"   :@"iPod Touch",      // (Original)
                               @"iPod2,1"   :@"iPod Touch",      // (Second Generation)
                               @"iPod3,1"   :@"iPod Touch",      // (Third Generation)
@@ -131,7 +131,13 @@ RCT_EXPORT_MODULE()
     }
 
     NSString* deviceName = [deviceNamesByCode objectForKey:self.deviceId];
-
+    if ([deviceName isEqual: @"Simulator"]) {
+      // prefer device name
+      if ([[[NSProcessInfo processInfo] environment] objectForKey:@"SIMULATOR_MODEL_IDENTIFIER"]) {
+        deviceName = [deviceNamesByCode objectForKey:[[[NSProcessInfo processInfo] environment] objectForKey:@"SIMULATOR_MODEL_IDENTIFIER"]];
+      }
+    }
+    
     if (!deviceName) {
         // Not found on database. At least guess main device type from string contents:
 
